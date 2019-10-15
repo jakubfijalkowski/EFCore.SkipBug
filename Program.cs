@@ -18,6 +18,7 @@ namespace EFCore.SkipBug
             await Inner_subquery_with_Skip_before_it(ctx).HandleAsync(nameof(Inner_subquery_with_Skip_before_it)); // Fails
             await Outer_subquery_with_Skip_after_it(ctx).HandleAsync(nameof(Outer_subquery_with_Skip_after_it)); // Works
             await Inner_subquery_with_Skip_after_it(ctx).HandleAsync(nameof(Inner_subquery_with_Skip_after_it)); // Works
+            await No_subquery_but_two_projections(ctx).HandleAsync(nameof(No_subquery_but_two_projections)); // Works
             await Single_projection(ctx).HandleAsync(nameof(Single_projection)); // Works
         }
 
@@ -32,6 +33,16 @@ namespace EFCore.SkipBug
                     o.Item.Id,
                     Ids = o.Item.SubEntities.Select(p => p.CollectMe).ToList(),
                 })
+                .ToListAsync();
+        }
+
+        static async Task No_subquery_but_two_projections(TestContext ctx)
+        {
+            await ctx.RootEntities
+                .OrderBy(i => i.Id)
+                .Select(i => new { Item = i })
+                .Skip(1)
+                .Select(o => new { o.Item.Id })
                 .ToListAsync();
         }
 
